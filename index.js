@@ -54,7 +54,7 @@ var lazyLoadingResponseFromArray = async function lazyLoadingResponseFromArray(_
   var edges = [];
   await Promise.all(result.map(async function (record) {
     var edge = {
-      cursor: JSON.stringify({ lastId: _lodash2.default.get(record, '_id'), orderLastValue: _lodash2.default.get(record, orderFieldName) }),
+      cursor: new Buffer(JSON.stringify({ lastId: _lodash2.default.get(record, '_id'), orderLastValue: _lodash2.default.get(record, orderFieldName) })).toString('base64'),
       node: record
     };
     edges.push(edge);
@@ -81,7 +81,7 @@ exports.fetchConnectionFromArray = async function (_ref8) {
   var matchCondition = createSearchFilters({ searchConditions: searchConditions });
 
   if (after) {
-    var unserializedAfter = JSON.parse(after);
+    var unserializedAfter = JSON.parse(new Buffer(after, 'base64').toString('ascii'));
     var lastId = unserializedAfter.lastId;
     var orderLastValue = unserializedAfter.orderLastValue;
     lazyLoadingCondition({ matchCondition: matchCondition, lastId: lastId, orderFieldName: orderFieldName, orderLastValue: orderLastValue, sortType: sortType });

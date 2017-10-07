@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _ from 'lodash'
 
 const SEARCH_INPUT_TYPE = {
   INT: 'INT',
@@ -9,11 +9,11 @@ const createSearchFilters = ({searchConditions}) => {
   if (searchConditions && Object.keys(searchConditions).length > 0) {
     searchConditions.forEach((item) => {
       if (item.searchType === SEARCH_INPUT_TYPE.STR) {
-      searchFilters[item.searchField] = new RegExp(`.*${item.searchValue}.*`, 'i')
-    } else if (item.searchType === SEARCH_INPUT_TYPE.INT) {
-      searchFilters[item.searchField] = parseInt(item.searchValue)
-    }
-  })
+        searchFilters[item.searchField] = new RegExp(`.*${item.searchValue}.*`, 'i')
+      } else if (item.searchType === SEARCH_INPUT_TYPE.INT) {
+        searchFilters[item.searchField] = parseInt(item.searchValue)
+      }
+    })
   }
   return searchFilters
 }
@@ -26,45 +26,45 @@ const lazyLoadingCondition = ({ matchCondition, lastId, orderFieldName, orderLas
   } else {
     matchCondition['$or'] = [{
       $and: [{ [orderFieldName]: { $lte: orderLastValue } }, { '_id': { $lt: lastId } }]
-    }, { [orderFieldName]: { $lt: orderLastValue } }];
+    }, { [orderFieldName]: { $lt: orderLastValue } }]
   }
-};
+}
 
 const lazyLoadingResponseFromArray = async ({ result, orderFieldName, hasNextPage }) => {
-  let edges = [];
+  let edges = []
   await Promise.all(result.map(async record => {
     let edge = {
-      cursor: JSON.stringify({ lastId: _.get(record, '_id'), orderLastValue: _.get(record, orderFieldName) }),
+      cursor: new Buffer(JSON.stringify({ lastId: _.get(record, '_id'), orderLastValue: _.get(record, orderFieldName) })).toString('base64'),
       node: record
     };
-    edges.push(edge);
-  }));
+    edges.push(edge)
+  }))
   return {
     pageInfo: {
       hasNextPage
     },
     edges
-  };
-};
+  }
+}
 
 exports.fetchConnectionFromArray = async ({ model, searchConditions, first = 5, after, sortType = 1, orderFieldName = "_id" }) => {
-  let matchCondition = createSearchFilters({ searchConditions });
+  let matchCondition = createSearchFilters({ searchConditions })
 
   if (after) {
-    let unserializedAfter = JSON.parse(after);
-    let lastId = unserializedAfter.lastId;
-    let orderLastValue = unserializedAfter.orderLastValue;
-    lazyLoadingCondition({ matchCondition, lastId, orderFieldName, orderLastValue, sortType });
+    let unserializedAfter = JSON.parse(new Buffer(after, 'base64').toString('ascii'))
+    let lastId = unserializedAfter.lastId
+    let orderLastValue = unserializedAfter.orderLastValue
+    lazyLoadingCondition({ matchCondition, lastId, orderFieldName, orderLastValue, sortType })
   }
 
-  let result = await model.find(matchCondition).sort({ [orderFieldName]: sortType }).limit(first + 1);
+  let result = await model.find(matchCondition).sort({ [orderFieldName]: sortType }).limit(first + 1)
 
   // check hasNextPage
-  let hasNextPage = false;
+  let hasNextPage = false
   if (result.length && result.length > first) {
-    hasNextPage = true;
-    result.pop();
+    hasNextPage = true
+    result.pop()
   }
 
-  return lazyLoadingResponseFromArray({ result, orderFieldName, hasNextPage });
-};
+  return lazyLoadingResponseFromArray({ result, orderFieldName, hasNextPage })
+}
