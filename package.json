@@ -4,7 +4,7 @@
   "description": "Improve relay pagination performance with find and limit",
   "main": "index.js",
   "scripts": {
-    "build": "babel src --presets babel-preset-es2015 -d dist",
+    "build": "babel src -d dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -39,6 +39,7 @@
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "lodash": "^4.17.4"
   }
 }
