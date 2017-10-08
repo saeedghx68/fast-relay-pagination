@@ -14,3 +14,4 @@ node_modules
 .idea
 yarn.lock
 /.idea
+yarn-error.log
