@@ -111,6 +111,7 @@ var lazyLoadingResponseFromArray = function () {
 exports.fetchConnectionFromArray = function () {
   var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(_ref11) {
     var model = _ref11.model,
+        filter = _ref11.filter,
         searchConditions = _ref11.searchConditions,
         _ref11$first = _ref11.first,
         first = _ref11$first === undefined ? 5 : _ref11$first,
@@ -135,10 +136,14 @@ exports.fetchConnectionFromArray = function () {
               lazyLoadingCondition({ matchCondition: matchCondition, lastId: lastId, orderFieldName: orderFieldName, orderLastValue: orderLastValue, sortType: sortType });
             }
 
-            _context3.next = 4;
+            if (filter) {
+              _lodash2.default.merge(matchCondition, filter);
+            }
+
+            _context3.next = 5;
             return model.find(matchCondition).sort(_defineProperty({}, orderFieldName, sortType)).limit(first + 1);
 
-          case 4:
+          case 5:
             result = _context3.sent;
 
 
@@ -152,7 +157,7 @@ exports.fetchConnectionFromArray = function () {
 
             return _context3.abrupt('return', lazyLoadingResponseFromArray({ result: result, orderFieldName: orderFieldName, hasNextPage: hasNextPage }));
 
-          case 8:
+          case 9:
           case 'end':
             return _context3.stop();
         }

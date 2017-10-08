@@ -47,7 +47,7 @@ const lazyLoadingResponseFromArray = async ({ result, orderFieldName, hasNextPag
   }
 }
 
-exports.fetchConnectionFromArray = async ({ model, searchConditions, first = 5, after, sortType = 1, orderFieldName = "_id" }) => {
+exports.fetchConnectionFromArray = async ({ model, filter, searchConditions, first = 5, after, sortType = 1, orderFieldName = "_id" }) => {
   let matchCondition = createSearchFilters({ searchConditions })
 
   if (after) {
@@ -55,6 +55,10 @@ exports.fetchConnectionFromArray = async ({ model, searchConditions, first = 5, 
     let lastId = unserializedAfter.lastId
     let orderLastValue = unserializedAfter.orderLastValue
     lazyLoadingCondition({ matchCondition, lastId, orderFieldName, orderLastValue, sortType })
+  }
+
+  if(filter) {
+    _.merge(matchCondition, filter)
   }
 
   let result = await model.find(matchCondition).sort({ [orderFieldName]: sortType }).limit(first + 1)
