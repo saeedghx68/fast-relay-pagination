@@ -35,6 +35,7 @@ export default {
       model: SomeMongooseModel,
       first: args.first, // OPTIONAL
       after: args.after, // OPTIONAL
+      filter, // OPTIONAL
       searchConditions: args.searchConditions, // OPTIONAL
       sortType: args.sortType, // OPTIONAL
       orderFieldName: args.orderFieldName, // OPTIONAL
