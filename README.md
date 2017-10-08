@@ -74,6 +74,10 @@ Want to contribute? Great!
 - Push your work back up to your fork
 - Submit a Pull request so that we can review your changes
 
+# TODO
+`last` and `before` will be available as soon as possible.
+
+
 Copyright and Licensing
 -----------------------
 
