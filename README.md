@@ -1,6 +1,6 @@
 # Fast Relay Pagination
 
-Fast Relay pagination is a library to improve [`graphql-relay`][graphqlRelayGithub] lazy loading by using [`mongoose`][mongooseGithub] **find** and **limit**. As you definitely know,  `graphql-relay`'s `connectionFromArray` fetchs all data and perform slicing on data which is not efficient for large amount of data fetched from `mongodb`.
+Fast Relay pagination is a library to improve [`graphql-relay`][graphqlRelayGithub] lazy loading by using [`mongoose`][mongooseGithub] or [`mongodb`][mongodbGithub] **find** and **limit**. As you definitely know,  `graphql-relay`'s `connectionFromArray` fetchs all data and perform slicing on data which is not efficient for large amount of data fetched from `mongodb`.
 
 # Installation
 
@@ -13,16 +13,15 @@ $ npm install -g fast-relay-pagination
 The only effort you need, is using `fetchConnectionFromArray` method from library. 
 ```js
 ...
-import {fetchConnectionFromArray} from 'fast-relay-pagination'
+import {
+  fetchConnectionFromArray, getMatchCondition,
+}
 ...
 
 export default {
   type: connection.connectionType,
   args: {
     ...connectionArgs,
-    searchConditions: {
-      type: new GraphQLList(new GraphQLNonNull(SearchConditionInputType)),
-    },
     orderFieldName: {
       type: GraphQLString,
     },
@@ -31,36 +30,23 @@ export default {
     },
   },
   resolve: async (_, args) => {
+    let orderFieldName = args.orderFieldName ? args.orderFieldName : '_id'
+    let sortType = args.sortType ? args.sortType : -1
+    let after = args.after
+    let filter = {}
+    let first = args.first
+
+    let matchCondition = getMatchCondition({filter, after, orderFieldName, sortType})
+
     return fetchConnectionFromArray({
-      model: SomeMongooseModel,
-      first: args.first, // OPTIONAL
-      after: args.after, // OPTIONAL
-      filter, // OPTIONAL
-      searchConditions: args.searchConditions, // OPTIONAL
-      sortType: args.sortType, // OPTIONAL
-      orderFieldName: args.orderFieldName, // OPTIONAL
+      dataPromise: model.find(matchCondition),
+      first, // OPTIONAL
+      sortType, // OPTIONAL
+      orderFieldName, // OPTIONAL
     })
   },
 }
-```
 
-You may probably ask about `SearchConditionInputType`. The following lines shows `SearchConditionInputType` code:
-
-```js
-export default new GraphQLInputObjectType({
-  name: 'SearchConditionInputType',
-  fields: {
-    searchField: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
-    searchValue: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
-    searchType: {
-      type: new GraphQLNonNull(SearchInputTypeEnum),
-    },
-  },
-})
 ```
 
 ##### Production Notes
@@ -109,4 +95,5 @@ limitations under the License.
 
    [mongooseGithub]: <https://github.com/Automattic/mongoose>
    [graphqlRelayGithub]: <https://github.com/graphql/graphql-relay-js>
+   [mongodbGithub]: <https://github.com/mongodb/node-mongodb-native>
 
