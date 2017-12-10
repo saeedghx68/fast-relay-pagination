@@ -37,15 +37,15 @@ export default{
     let first = args.first
     let last = args.last
     return fetchConnectionFromArray({
-      dataPromiseFunc: SampleModel.find.bind(SampleModel),
-      filter,
-      after,
-      before,
-      first,
-      last,
-      orderFieldName,
-      sortType,
-      ObjectId,
+      dataPromiseFunc: SampleModel.find.bind(SampleModel), // required
+      filter, // optional (for using filter on model collection) - for example => {username: 'test'} 
+      after, //optiona
+      before, // optional
+      first, //optional
+      last, // optional
+      orderFieldName, // optional
+      sortType, // optional
+      ObjectId, //required
     })
   }),
 }
