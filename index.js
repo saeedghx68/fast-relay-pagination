@@ -17,8 +17,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-var ObjectID = void 0;
-
 var decodeBase64 = function decodeBase64(_ref) {
   var encodedStr = _ref.encodedStr;
 
@@ -42,19 +40,20 @@ var lazyLoadingCondition = function () {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+
             if (!('$or' in matchCondition) || matchCondition || matchCondition['$or'] === undefined) {
               matchCondition['$or'] = [{}];
             }
             if (sortType === 1) {
               matchCondition['$and'] = [{ '$or': matchCondition['$or'] }, {
                 '$or': [{
-                  $and: [_defineProperty({}, orderFieldName, { $gte: orderLastValue }), { '_id': { $gt: ObjectID(lastId) } }]
+                  $and: [_defineProperty({}, orderFieldName, { $gte: orderLastValue }), { '_id': { $gt: lastId } }]
                 }, _defineProperty({}, orderFieldName, { $gt: orderLastValue })]
               }];
             } else {
               matchCondition['$and'] = [{ '$or': matchCondition['$or'] }, {
                 '$or': [{
-                  $and: [_defineProperty({}, orderFieldName, { $lte: orderLastValue }), { '_id': { $lt: ObjectID(lastId) } }]
+                  $and: [_defineProperty({}, orderFieldName, { $lte: orderLastValue }), { '_id': { $lt: lastId } }]
                 }, _defineProperty({}, orderFieldName, { $lt: orderLastValue })]
               }];
             }
@@ -197,8 +196,7 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
         _ref15$orderFieldName = _ref15.orderFieldName,
         orderFieldName = _ref15$orderFieldName === undefined ? '_id' : _ref15$orderFieldName,
         _ref15$sortType = _ref15.sortType,
-        sortType = _ref15$sortType === undefined ? 1 : _ref15$sortType,
-        ObjectId = _ref15.ObjectId;
+        sortType = _ref15$sortType === undefined ? 1 : _ref15$sortType;
 
     var hasNextPage, hasPreviousPage, result, matchCondition, _dataPromiseFunc$sort, _dataPromiseFunc$sort2, _dataPromiseFunc$sort3, _dataPromiseFunc$sort4, _dataPromiseFunc$sort5;
 
@@ -207,18 +205,16 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
         switch (_context5.prev = _context5.next) {
           case 0:
             hasNextPage = false;
-
-            ObjectID = ObjectId;
             hasPreviousPage = false;
             result = [];
             matchCondition = {};
 
             if (!after) {
-              _context5.next = 24;
+              _context5.next = 23;
               break;
             }
 
-            _context5.next = 8;
+            _context5.next = 7;
             return getMatchCondition({
               filter: filter,
               cursor: after,
@@ -226,18 +222,18 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
               sortType: sortType
             });
 
-          case 8:
+          case 7:
             matchCondition = _context5.sent;
-            _context5.next = 11;
+            _context5.next = 10;
             return dataPromiseFunc(matchCondition).sort((_dataPromiseFunc$sort = {}, _defineProperty(_dataPromiseFunc$sort, orderFieldName, sortType), _defineProperty(_dataPromiseFunc$sort, '_id', sortType), _dataPromiseFunc$sort)).limit(first + 1).then(function (data) {
               return data;
             });
 
-          case 11:
+          case 10:
             result = _context5.sent;
 
             sortType *= -1;
-            _context5.next = 15;
+            _context5.next = 14;
             return getMatchCondition({
               filter: filter,
               cursor: after,
@@ -245,13 +241,13 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
               sortType: sortType
             });
 
-          case 15:
+          case 14:
             matchCondition = _context5.sent;
             _context5.t0 = Boolean;
-            _context5.next = 19;
+            _context5.next = 18;
             return dataPromiseFunc(matchCondition).sort((_dataPromiseFunc$sort2 = {}, _defineProperty(_dataPromiseFunc$sort2, orderFieldName, sortType), _defineProperty(_dataPromiseFunc$sort2, '_id', sortType), _dataPromiseFunc$sort2)).count();
 
-          case 19:
+          case 18:
             _context5.t1 = _context5.sent;
             hasPreviousPage = (0, _context5.t0)(_context5.t1);
 
@@ -259,17 +255,17 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
               hasNextPage = true;
               result.pop();
             }
-            _context5.next = 52;
+            _context5.next = 51;
             break;
 
-          case 24:
+          case 23:
             if (!(before || last)) {
-              _context5.next = 45;
+              _context5.next = 44;
               break;
             }
 
             sortType *= -1;
-            _context5.next = 28;
+            _context5.next = 27;
             return getMatchCondition({
               filter: filter,
               cursor: before,
@@ -277,23 +273,23 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
               sortType: sortType
             });
 
-          case 28:
+          case 27:
             matchCondition = _context5.sent;
-            _context5.next = 31;
+            _context5.next = 30;
             return dataPromiseFunc(matchCondition).sort((_dataPromiseFunc$sort3 = {}, _defineProperty(_dataPromiseFunc$sort3, orderFieldName, sortType), _defineProperty(_dataPromiseFunc$sort3, '_id', sortType), _dataPromiseFunc$sort3)).limit(last + 1).then(function (data) {
               return data.reverse();
             });
 
-          case 31:
+          case 30:
             result = _context5.sent;
 
             if (!before) {
-              _context5.next = 42;
+              _context5.next = 41;
               break;
             }
 
             sortType *= -1;
-            _context5.next = 36;
+            _context5.next = 35;
             return getMatchCondition({
               filter: filter,
               cursor: before,
@@ -301,40 +297,40 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
               sortType: sortType
             });
 
-          case 36:
+          case 35:
             matchCondition = _context5.sent;
             _context5.t2 = Boolean;
-            _context5.next = 40;
+            _context5.next = 39;
             return dataPromiseFunc(matchCondition).sort((_dataPromiseFunc$sort4 = {}, _defineProperty(_dataPromiseFunc$sort4, orderFieldName, sortType), _defineProperty(_dataPromiseFunc$sort4, '_id', sortType), _dataPromiseFunc$sort4)).count();
 
-          case 40:
+          case 39:
             _context5.t3 = _context5.sent;
             hasNextPage = (0, _context5.t2)(_context5.t3);
 
-          case 42:
+          case 41:
             if (result.length && result.length > last) {
               hasPreviousPage = true;
               result.shift();
             }
-            _context5.next = 52;
+            _context5.next = 51;
             break;
 
-          case 45:
-            _context5.next = 47;
+          case 44:
+            _context5.next = 46;
             return getMatchCondition({
               filter: filter,
               orderFieldName: orderFieldName,
               sortType: sortType
             });
 
-          case 47:
+          case 46:
             matchCondition = _context5.sent;
-            _context5.next = 50;
+            _context5.next = 49;
             return dataPromiseFunc(matchCondition).sort((_dataPromiseFunc$sort5 = {}, _defineProperty(_dataPromiseFunc$sort5, orderFieldName, sortType), _defineProperty(_dataPromiseFunc$sort5, '_id', sortType), _dataPromiseFunc$sort5)).limit(first + 1).then(function (data) {
               return data;
             });
 
-          case 50:
+          case 49:
             result = _context5.sent;
 
             if (result.length && result.length > first) {
@@ -342,7 +338,7 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
               result.pop();
             }
 
-          case 52:
+          case 51:
             return _context5.abrupt('return', lazyLoadingResponseFromArray({
               result: result,
               orderFieldName: orderFieldName,
@@ -350,7 +346,7 @@ var fetchConnectionFromArray = exports.fetchConnectionFromArray = function () {
               hasPreviousPage: hasPreviousPage
             }));
 
-          case 53:
+          case 52:
           case 'end':
             return _context5.stop();
         }

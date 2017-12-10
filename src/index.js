@@ -1,8 +1,6 @@
 import _ from 'lodash'
 import { Base64 } from 'js-base64'
 
-let ObjectID
-
 const decodeBase64 = ({encodedStr}) => {
   return Base64.decode(encodedStr)
 }
@@ -12,6 +10,7 @@ const encodeBase64 = ({value}) => {
 }
 
 const lazyLoadingCondition = async ({matchCondition, lastId, orderFieldName, orderLastValue, sortType}) => {
+
   if (!('$or' in matchCondition) || matchCondition || matchCondition['$or'] === undefined) {
     matchCondition['$or'] = [{}]
   }
@@ -19,13 +18,13 @@ const lazyLoadingCondition = async ({matchCondition, lastId, orderFieldName, ord
     matchCondition['$and'] = [{'$or': matchCondition['$or']},
       {
         '$or': [{
-          $and: [{[orderFieldName]: {$gte: orderLastValue}}, {'_id': {$gt: ObjectID(lastId)}}],
+          $and: [{[orderFieldName]: {$gte: orderLastValue}}, {'_id': {$gt: lastId}}],
         }, {[orderFieldName]: {$gt: orderLastValue}}],
       }]
   } else {
     matchCondition['$and'] = [{'$or': matchCondition['$or']}, {
       '$or': [{
-        $and: [{[orderFieldName]: {$lte: orderLastValue}}, {'_id': {$lt: ObjectID(lastId)}}],
+        $and: [{[orderFieldName]: {$lte: orderLastValue}}, {'_id': {$lt: lastId}}],
       }, {[orderFieldName]: {$lt: orderLastValue}}],
     }]
   }
@@ -83,10 +82,8 @@ export const fetchConnectionFromArray = async ({
                                                  last,
                                                  orderFieldName = '_id',
                                                  sortType = 1,
-                                                 ObjectId,
                                                }) => {
   let hasNextPage = false
-  ObjectID = ObjectId
   let hasPreviousPage = false
   let result = []
   let matchCondition = {}
