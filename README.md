@@ -1,6 +1,6 @@
 # Fast Relay Pagination
 
-Fast Relay pagination is a library to improve [`graphql-relay`][graphqlRelayGithub] lazy loading by using [`mongoose`][mongooseGithub] or [`mongodb`][mongodbGithub] **find** and **limit**. As you definitely know,  `graphql-relay`'s `connectionFromArray` fetchs all data and perform slicing on data which is not efficient for large amount of data fetched from `mongodb`.
+[`Fast-relay-pagination`][fastRelayPagination] is a library to improve [`graphql-relay`][graphqlRelayGithub] lazy loading by using [`mongoose`][mongooseGithub] or [`mongodb`][mongodbGithub] **find** and **limit**. As you definitely know,  `graphql-relay`'s `connectionFromArray` fetchs all data and perform slicing on data which is not efficient for large amount of data fetched from `mongodb`.
 
 # Installation
 
@@ -45,7 +45,6 @@ export default{
       last, // optional
       orderFieldName, // optional
       sortType, // optional
-      ObjectId, //required
     })
   }),
 }
@@ -66,7 +65,7 @@ Want to contribute? Great!
 Copyright and Licensing
 -----------------------
 
-fast-relay-pagination is open source projects are licensed under the Apache 2.0 license.
+[`fast-relay-pagination`][fastRelayPagination] is open source projects are licensed under the Apache 2.0 license.
 
 fast-relay-pagination does not require you to assign the copyright of your contributions, you retain the copyright. fast-relay-pagination does require that you make your contributions available under the Apache license in order to be included in the main repo.
 
@@ -95,4 +94,5 @@ limitations under the License.
    [mongooseGithub]: <https://github.com/Automattic/mongoose>
    [graphqlRelayGithub]: <https://github.com/graphql/graphql-relay-js>
    [mongodbGithub]: <https://github.com/mongodb/node-mongodb-native>
+   [fastRelayPagination]: <https://www.npmjs.com/package/fast-relay-pagination>
 
