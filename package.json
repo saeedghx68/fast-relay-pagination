@@ -1,6 +1,6 @@
 {
   "name": "fast-relay-pagination",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Improve relay pagination performance with find and limit",
   "main": "index.js",
   "scripts": {
