@@ -14,12 +14,11 @@ The only effort you need, is using `fetchConnectionFromArray` method from librar
 ```js
 ...
 import {
-  fetchConnectionFromArray, getMatchCondition,
-}
+  fetchConnectionFromArray
+} from 'fast-relay-pagination'
 ...
-
-export default {
-  type: connection.connectionType,
+export default{
+  type: orderConnection.connectionType,
   args: {
     ...connectionArgs,
     orderFieldName: {
@@ -29,22 +28,26 @@ export default {
       type: GraphQLInt,
     },
   },
-  resolve: async (_, args) => {
-    let orderFieldName = args.orderFieldName ? args.orderFieldName : '_id'
-    let sortType = args.sortType ? args.sortType : -1
+  resolve: needAdmin(async (_, args) => {
+    let orderFieldName = args.orderFieldName || '_id'
+    let sortType = args.sortType || -1
     let after = args.after
-    let filter = {}
+    let before = args.before
+    let filter = args.filter
     let first = args.first
-
-    let matchCondition = getMatchCondition({filter, after, orderFieldName, sortType})
-
+    let last = args.last
     return fetchConnectionFromArray({
-      dataPromise: model.find(matchCondition),
-      first, // OPTIONAL
-      sortType, // OPTIONAL
-      orderFieldName, // OPTIONAL
+      dataPromiseFunc: SampleModel.find.bind(SampleModel),
+      filter,
+      after,
+      before,
+      first,
+      last,
+      orderFieldName,
+      sortType,
+      ObjectId,
     })
-  },
+  }),
 }
 
 ```
@@ -59,10 +62,6 @@ Want to contribute? Great!
 - Commit changes to your own branch
 - Push your work back up to your fork
 - Submit a Pull request so that we can review your changes
-
-# TODO
-`last` and `before` will be available as soon as possible.
-
 
 Copyright and Licensing
 -----------------------
