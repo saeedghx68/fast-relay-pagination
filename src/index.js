@@ -1,26 +1,48 @@
 import _ from 'lodash'
+import { Base64 } from 'js-base64'
 
+let ObjectID
 
-const lazyLoadingCondition = ({matchCondition, lastId, orderFieldName, orderLastValue, sortType}) => {
-  if (sortType === 1) {
-    matchCondition['$or'] = [{
-      $and: [{[orderFieldName]: {$gte: orderLastValue}}, {'_id': {$gt: lastId}}],
-    }, {[orderFieldName]: {$gt: orderLastValue}}]
-  } else {
-    matchCondition['$or'] = [{
-      $and: [{[orderFieldName]: {$lte: orderLastValue}}, {'_id': {$lt: lastId}}],
-    }, {[orderFieldName]: {$lt: orderLastValue}}]
-  }
+const decodeBase64 = ({encodedStr}) => {
+  return Base64.decode(encodedStr)
 }
 
-const lazyLoadingResponseFromArray = async ({result, orderFieldName, hasNextPage}) => {
+const encodeBase64 = ({value}) => {
+  return Base64.encodeURI(value)
+}
+
+const lazyLoadingCondition = async ({matchCondition, lastId, orderFieldName, orderLastValue, sortType}) => {
+  if (!('$or' in matchCondition) || matchCondition || matchCondition['$or'] === undefined) {
+    matchCondition['$or'] = [{}]
+  }
+  if (sortType === 1) {
+    matchCondition['$and'] = [{'$or': matchCondition['$or']},
+      {
+        '$or': [{
+          $and: [{[orderFieldName]: {$gte: orderLastValue}}, {'_id': {$gt: ObjectID(lastId)}}],
+        }, {[orderFieldName]: {$gt: orderLastValue}}],
+      }]
+  } else {
+    matchCondition['$and'] = [{'$or': matchCondition['$or']}, {
+      '$or': [{
+        $and: [{[orderFieldName]: {$lte: orderLastValue}}, {'_id': {$lt: ObjectID(lastId)}}],
+      }, {[orderFieldName]: {$lt: orderLastValue}}],
+    }]
+  }
+  delete matchCondition['$or']
+}
+
+const lazyLoadingResponseFromArray = async ({result, orderFieldName, hasNextPage, hasPreviousPage}) => {
   let edges = []
+  let edge
+  let value
   await Promise.all(result.map(async record => {
-    let edge = {
-      cursor: new Buffer(JSON.stringify({
-        lastId: _.get(record, '_id'),
-        orderLastValue: _.get(record, orderFieldName),
-      })).toString('base64'),
+    value = JSON.stringify({
+      lastId: _.get(record, '_id'),
+      orderLastValue: _.get(record, orderFieldName),
+    })
+    edge = {
+      cursor: encodeBase64({value}),
       node: record,
     }
     edges.push(edge)
@@ -28,34 +50,122 @@ const lazyLoadingResponseFromArray = async ({result, orderFieldName, hasNextPage
   return {
     pageInfo: {
       hasNextPage,
+      hasPreviousPage,
+      startCursor: edges[0] ? edges[0].cursor : null,
+      endCursor: edges[edges.length - 1] ? edges[edges.length - 1].cursor : null,
     },
     edges,
   }
 }
 
-export const getMatchCondition = async ({filter={}, after, orderFieldName, sortType}) => {
-  let matchCondition = filter
+const getMatchCondition = async ({filter, cursor, orderFieldName, sortType}) => {
+  let matchCondition = {}
 
-  if (after) {
-    let unserializedAfter = JSON.parse(new Buffer(after, 'base64').toString('ascii'))
+  if (cursor) {
+    let unserializedAfter = JSON.parse(decodeBase64({encodedStr: cursor}))
     let lastId = unserializedAfter.lastId
     let orderLastValue = unserializedAfter.orderLastValue
-    lazyLoadingCondition({matchCondition, lastId, orderFieldName, orderLastValue, sortType})
+    await lazyLoadingCondition({matchCondition, lastId, orderFieldName, orderLastValue, sortType})
+  }
+  if (filter) {
+    _.merge(matchCondition, filter)
   }
 
   return matchCondition
 }
 
-exports.fetchConnectionFromArray = async ({dataPromise, first = 5, sortType = 1, orderFieldName = '_id'}) => {
-  let result = await dataPromise.sort({[orderFieldName]: sortType}).limit(first + 1).then(data => data)
-
-  // check hasNextPage
+export const fetchConnectionFromArray = async ({
+                                                 dataPromiseFunc,
+                                                 filter,
+                                                 after,
+                                                 before,
+                                                 first = 5,
+                                                 last,
+                                                 orderFieldName = '_id',
+                                                 sortType = 1,
+                                                 ObjectId,
+                                               }) => {
   let hasNextPage = false
-  if (result.length && result.length > first) {
-    hasNextPage = true
-    result.pop()
+  ObjectID = ObjectId
+  let hasPreviousPage = false
+  let result = []
+  let matchCondition = {}
+
+  if (after) {
+    matchCondition = await getMatchCondition({
+      filter,
+      cursor: after,
+      orderFieldName,
+      sortType,
+    })
+    result = await dataPromiseFunc(matchCondition).sort({
+      [orderFieldName]: sortType,
+      _id: sortType,
+    }).limit(first + 1).then(data => data)
+    sortType *= -1
+    matchCondition = await getMatchCondition({
+      filter,
+      cursor: after,
+      orderFieldName,
+      sortType,
+    })
+    hasPreviousPage = Boolean(await dataPromiseFunc(matchCondition).sort({
+      [orderFieldName]: sortType,
+      _id: sortType,
+    }).count())
+    if (result.length && result.length > first) {
+      hasNextPage = true
+      result.pop()
+    }
+  } else if (before || last) {
+    sortType *= -1
+    matchCondition = await getMatchCondition({
+      filter,
+      cursor: before,
+      orderFieldName,
+      sortType,
+    })
+    result = await dataPromiseFunc(matchCondition).sort({
+      [orderFieldName]: sortType,
+      _id: sortType,
+    }).limit(last + 1).then(data => data.reverse())
+    if (before) {
+      sortType *= -1
+      matchCondition = await getMatchCondition({
+        filter,
+        cursor: before,
+        orderFieldName,
+        sortType,
+      })
+      hasNextPage = Boolean(await dataPromiseFunc(matchCondition).sort({
+        [orderFieldName]: sortType,
+        _id: sortType,
+      }).count())
+    }
+    if (result.length && result.length > last) {
+      hasPreviousPage = true
+      result.shift()
+    }
+  } else {
+    matchCondition = await getMatchCondition({
+      filter,
+      orderFieldName,
+      sortType: sortType,
+    })
+    result = await dataPromiseFunc(matchCondition).sort({
+      [orderFieldName]: sortType,
+      _id: sortType,
+    }).limit(first + 1).then(data => data)
+    if (result.length && result.length > first) {
+      hasNextPage = true
+      result.pop()
+    }
   }
 
-  return lazyLoadingResponseFromArray({result, orderFieldName, hasNextPage})
+  return lazyLoadingResponseFromArray({
+    result,
+    orderFieldName,
+    hasNextPage,
+    hasPreviousPage,
+  })
 }
-
